@@ -7,7 +7,7 @@ import plotly.graph_objects as go
 st.set_page_config(page_title="Recomendador de Condições de Cultivo", page_icon="🌾", layout="wide")
 df = pd.read_csv(r'Crop_recommendation.csv')
 
-# Recommendation system class
+
 class CropRecommendationSystem:
     def __init__(self, df):
         self.df = df
@@ -22,13 +22,13 @@ class CropRecommendationSystem:
         if crop_data.empty:
             return None, None, None, 0, f"Nenhum dado encontrado para a cultura: {crop_label}"
         
-        # Calculate average, min, and max conditions
+        
         avg_conditions = crop_data[['N', 'P', 'K', 'temperature', 'humidity', 'ph', 'rainfall']].mean().to_dict()
         min_conditions = crop_data[['N', 'P', 'K', 'temperature', 'humidity', 'ph', 'rainfall']].min().to_dict()
         max_conditions = crop_data[['N', 'P', 'K', 'temperature', 'humidity', 'ph', 'rainfall']].max().to_dict()
         num_samples = len(crop_data)
         
-        # Map to Portuguese feature names
+        
         avg_conditions_pt = {self.features[i]: avg_conditions[key] 
                             for i, key in enumerate(['N', 'P', 'K', 'temperature', 'humidity', 'ph', 'rainfall'])}
         min_conditions_pt = {self.features[i]: min_conditions[key] 
@@ -38,7 +38,7 @@ class CropRecommendationSystem:
         
         return avg_conditions_pt, min_conditions_pt, max_conditions_pt, num_samples, None
 
-# Custom CSS for enhanced visuals
+
 st.markdown("""
     <style>
     .main {
@@ -69,20 +69,20 @@ st.markdown("""
     }
     /* Dropdown styling */
     .stSelectbox > div > div {
-        background-color: #e8f5e9 !important; /* Match sidebar background */
+        background-color: #e8f5e9 !important; 
         border: 1px solid #4CAF50 !important;
         border-radius: 1px;
         padding: 0px !important;
-        color: #333333 !important; /* Dark text for contrast */
-        min-height: 10px !important; /* Prevent truncation */
+        color: #333333 !important; 
+        min-height: 10px !important; 
         line-height: 1.5 !important;
     }
     .stSelectbox > div > div > div {
-        color: #333333 !important; /* Ensure dropdown options are dark */
-        background-color: #ffffff !important; /* White background for dropdown options */
+        color: #333333 !important; 
+        background-color: #ffffff !important; 
     }
     .stSelectbox > div > div > div:hover {
-        background-color: #d4edda !important; /* Light green hover effect */
+        background-color: #d4edda !important; 
     }
     /* Table styling */
     .stTable {
@@ -113,38 +113,37 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# Streamlit app
+
 def main():
     
     
-    # Title and description in main area
     st.title("Recomendador de Condições de Cultivo")
     st.markdown("Selecione uma cultura na barra lateral para obter as condições ideais de cultivo com base em dados históricos.")
     
-    # Initialize recommendation system
+   
     recommender = CropRecommendationSystem(df)
     
-    # Sidebar for inputs
+    
     with st.sidebar:
         st.header("Entrada de Dados")
         crop_labels = df['label'].unique().tolist()
         crop_label = st.selectbox("Selecione a Cultura", crop_labels, index=0, help="Escolha uma cultura da lista")
         
-        # Button to trigger recommendation
+       
         submit = st.button("Obter Condições Ideais")
     
-    # Main content area for results
+   
     if submit:
         avg_conditions, min_conditions, max_conditions, num_samples, error = recommender.get_ideal_conditions(crop_label)
         
         if error:
             st.error(error)
         else:
-            # Success message and sample count
+            
             st.success(f"Condições Ideais para {crop_label}")
             st.write(f"Baseado em {num_samples} amostras")
             
-            # Create DataFrame for display
+           
             conditions_df = pd.DataFrame({
                 'Parâmetro': list(avg_conditions.keys()),
                 'Média': [avg_conditions[key] for key in avg_conditions],
@@ -153,11 +152,11 @@ def main():
             })
             conditions_df[['Média', 'Mínimo', 'Máximo']] = conditions_df[['Média', 'Mínimo', 'Máximo']].round(2)
             
-            # Display table
+           
             st.subheader("Tabela de Condições")
             st.table(conditions_df)
             
-            # Download button
+            
             csv = conditions_df.to_csv(index=False)
             st.download_button(
                 label="Baixar Condições (CSV)",
@@ -166,7 +165,7 @@ def main():
                 mime="text/csv"
             )
             
-            # Interactive Plotly bar chart
+            
             st.subheader("Visualização em Barras")
             fig_bar = px.bar(
                 conditions_df,
@@ -188,7 +187,7 @@ def main():
             )
             st.plotly_chart(fig_bar, use_container_width=True)
             
-            # Interactive Plotly radar chart
+            
             st.subheader("Visualização em Radar")
             fig_radar = go.Figure()
             fig_radar.add_trace(go.Scatterpolar(
