@@ -1,0 +1,2 @@
+location_data: {'temperature': 14.788798704092088, 'humidity': 56.74771741047798, 'rainfall': 2050.5092119323454, 'ph': 6.543037834830746, 'N': 81.51612386727024, 'P': 32.58172210321093, 'K': 35.30739883158694}
+location_df dtypes: {'N': dtype('float64'), 'P': dtype('float64'), 'K': dtype('float64'), 'temperature': dtype('float64'), 'humidity': dtype('float64'), 'ph': dtype('float64'), 'rainfall': dtype('float64')}
