@@ -6,16 +6,13 @@ from streamlit_folium import st_folium
 import matplotlib.pyplot as plt
 from sklearn.ensemble import RandomForestClassifier
 
-
 st.set_page_config(page_title="Sistema de Recomendação de Culturas", layout="wide")
 st.title("🌾 Sistema de Recomendação de Culturas")
 st.markdown("Clique no mapa ou insira uma localização para obter recomendações de culturas com base em condições ambientais simuladas.")
 
-
 def fake_weather_api(lat, lon, season="wet"):
     if not (-90 <= lat <= 90 and -180 <= lon <= 180):
         return {"cod": 400, "message": "Latitude ou longitude inválida"}
-    
     
     if abs(lat) <= 23.5:  
         if lon % 10 < 5:  
@@ -35,13 +32,11 @@ def fake_weather_api(lat, lon, season="wet"):
         humidity_range = (40, 70)
         rainfall_hourly = (0, 3)
     
-    
     error_chance = np.random.random()
     if error_chance < 0.03:
         return {"cod": 429, "message": "Limite de chamadas da API excedido"}
     elif error_chance < 0.06:
         return {"cod": 500, "message": "Erro interno do servidor"}
-    
     
     temp = np.random.uniform(*temp_range)
     humidity = np.random.uniform(*humidity_range)
@@ -59,11 +54,9 @@ def fake_weather_api(lat, lon, season="wet"):
         }
     }
 
-
 def fake_soil_api(lat, lon):
     if not (-90 <= lat <= 90 and -180 <= lon <= 180):
         return {"error": "Latitude ou longitude inválida"}
-    
     
     if abs(lat) <= 23.5:  
         if lon % 10 < 5: 
@@ -87,11 +80,9 @@ def fake_soil_api(lat, lon):
         p_range = (10, 30)
         k_range = (10, 25)
     
-    
     if np.random.random() < 0.05:
         return {"error": "Erro na API SoilGrids: dados indisponíveis"}
     
-   
     ph = np.random.uniform(*ph_range)
     nitrogen = np.random.uniform(*n_range)
     phosphorus = np.random.uniform(*p_range)
@@ -109,7 +100,6 @@ def fake_soil_api(lat, lon):
             ]
         }
     }
-
 
 @st.cache_data
 def get_env_data(lat, lon, season="wet"):
@@ -135,7 +125,6 @@ def get_env_data(lat, lon, season="wet"):
             raise ValueError(f"Valor inválido para {key}: {value} (tipo: {type(value)})")
     return data
 
-
 @st.cache_data
 def load_data():
     try:
@@ -145,7 +134,6 @@ def load_data():
         st.error("Erro: Arquivo 'Crop_recommendation.csv' não encontrado. Faça o download do dataset do Kaggle e coloque no diretório correto.")
         return None
 
-
 @st.cache_resource
 def train_ml_model(df):
     model = RandomForestClassifier(n_estimators=100, random_state=42)
@@ -153,7 +141,6 @@ def train_ml_model(df):
     y = df['label']
     model.fit(X, y)
     return model
-
 
 def plot_conditions(location_data, crop_ranges, selected_crop):
     fig, ax = plt.subplots(figsize=(10, 6))
@@ -176,7 +163,6 @@ def plot_conditions(location_data, crop_ranges, selected_crop):
     plt.tight_layout()
     return fig
 
-
 def get_crop_ranges(df):
     return df.groupby('label').agg({
         'N': ['min', 'max'], 'P': ['min', 'max'], 'K': ['min', 'max'],
@@ -184,9 +170,7 @@ def get_crop_ranges(df):
         'ph': ['min', 'max'], 'rainfall': ['min', 'max']
     }).reset_index()
 
-
 def main():
-   
     df = load_data()
     if df is None:
         return
@@ -197,17 +181,41 @@ def main():
     if 'lat' not in st.session_state:
         st.session_state.lat = -23.5505  
     if 'lon' not in st.session_state:
-        st.session_state.lon = -46.6333
+        st.session_state.lon = -46.6333  
 
     
+    try:
+        st.session_state.lat = float(st.session_state.lat)
+    except (TypeError, ValueError):
+        st.session_state.lat = -23.5505  
+    try:
+        st.session_state.lon = float(st.session_state.lon)
+    except (TypeError, ValueError):
+        st.session_state.lon = -46.6333  
+
     st.subheader("📍 Insira ou Clique no Mapa para Selecionar Localização")
     col1, col2 = st.columns(2)
     with col1:
-        st.session_state.lat = st.number_input("Latitude", min_value=-90.0, max_value=90.0, value=st.session_state.lat, step=0.0001, key="lat_input", help="Ex.: -23.5505 para São Paulo. Clique no mapa para atualizar.")
+        st.session_state.lat = st.number_input(
+            "Latitude",
+            min_value=-90.0,
+            max_value=90.0,
+            value=st.session_state.lat,
+            step=0.0001,
+            key="lat_input",
+            help="Ex.: -23.5505 para São Paulo. Clique no mapa para atualizar."
+        )
     with col2:
-        st.session_state.lon = st.number_input("Longitude", min_value=-180.0, max_value=180.0, value=st.session_state.lon, step=0.0001, key="lon_input", help="Ex.: -46.6333 para São Paulo. Clique no mapa para atualizar.")
+        st.session_state.lon = st.number_input(
+            "Longitude",
+            min_value=-180.0,
+            max_value=180.0,
+            value=st.session_state.lon,
+            step=0.0001,
+            key="lon_input",
+            help="Ex.: -46.6333 para São Paulo. Clique no mapa para atualizar."
+        )
 
-    
     st.subheader("🗺️ Mapa Interativo")
     m = folium.Map(location=[st.session_state.lat, st.session_state.lon], zoom_start=10)
     folium.Marker(
@@ -219,16 +227,19 @@ def main():
     
     
     if map_data and map_data.get("last_clicked"):
-        st.session_state.lat = map_data["last_clicked"]["lat"]
-        st.session_state.lon = map_data["last_clicked"]["lng"]
+        try:
+            st.session_state.lat = float(map_data["last_clicked"]["lat"])
+            st.session_state.lon = float(map_data["last_clicked"]["lng"])
+        except (TypeError, ValueError):
+            st.error("Erro: Coordenadas do mapa inválidas. Usando valores padrão.")
+            st.session_state.lat = -23.5505
+            st.session_state.lon = -46.6333
         st.rerun()  
 
-    
     st.subheader("🌦️ Estação do Ano")
     season = st.selectbox("Selecione a estação", ["Chuvosa", "Seca"], help="Afeta a simulação de precipitação")
     season = "wet" if season == "Chuvosa" else "dry"
 
-    
     st.subheader("🌍 Dados Ambientais (Opcional)")
     manual_input = st.checkbox("Inserir dados ambientais manualmente")
     if manual_input:
@@ -260,7 +271,6 @@ def main():
                 st.error(f"Erro: {e}")
                 return
 
-   
     st.subheader("🌱 Condições da Localização")
     st.write(f"**Latitude**: {st.session_state.lat:.4f}, **Longitude**: {st.session_state.lon:.4f}")
     st.write(f"**Condições**: N={location_data['N']:.2f} mg/kg, P={location_data['P']:.2f} mg/kg, "
@@ -268,9 +278,7 @@ def main():
              f"Umidade={location_data['humidity']:.2f}%, pH={location_data['ph']:.2f}, "
              f"Precipitação={location_data['rainfall']:.2f} mm/mês")
 
-    
     if st.button("Obter Recomendações de Culturas"):
-        
         feature_order = ['N', 'P', 'K', 'temperature', 'humidity', 'ph', 'rainfall']
         try:
             location_df = pd.DataFrame([location_data])[feature_order]
@@ -288,7 +296,6 @@ def main():
             ml_prediction = ml_model.predict(location_df)
             st.subheader("🤖 Cultura Recomendada por Machine Learning")
             st.success(f"✅ {ml_prediction[0].capitalize()}")
-            
             
             crop_images = {
                 "rice": "https://via.placeholder.com/150?text=Arroz",
