@@ -177,21 +177,30 @@ def main():
     crop_ranges = get_crop_ranges(df)  
     ml_model = train_ml_model(df)
 
-    
+    # Initialize session state for latitude and longitude as floats
     if 'lat' not in st.session_state:
-        st.session_state.lat = -23.5505  
+        st.session_state.lat = -23.5505  # Default to São Paulo, float
     if 'lon' not in st.session_state:
-        st.session_state.lon = -46.6333  
+        st.session_state.lon = -46.6333  # Default to São Paulo, float
 
-    
+    # Ensure lat and lon are floats and within valid ranges to avoid cloud resets
     try:
         st.session_state.lat = float(st.session_state.lat)
+        if not -90.0 <= st.session_state.lat <= 90.0:
+            st.session_state.lat = -23.5505  # Clamp to valid range
     except (TypeError, ValueError):
-        st.session_state.lat = -23.5505  
+        st.session_state.lat = -23.5505
     try:
         st.session_state.lon = float(st.session_state.lon)
+        if not -180.0 <= st.session_state.lon <= 180.0:
+            st.session_state.lon = -46.6333  # Clamp to valid range
     except (TypeError, ValueError):
-        st.session_state.lon = -46.6333  
+        st.session_state.lon = -46.6333
+
+    # Debug: Log session state (visible in cloud logs or UI if DEBUG=True in secrets)
+    if st.secrets.get("DEBUG", False):  # Set DEBUG=True in cloud secrets for testing
+        st.write(f"Debug - Lat: {st.session_state.lat} (type: {type(st.session_state.lat)})")
+        st.write(f"Debug - Lon: {st.session_state.lon} (type: {type(st.session_state.lon)})")
 
     st.subheader("📍 Insira ou Clique no Mapa para Selecionar Localização")
     col1, col2 = st.columns(2)
@@ -217,24 +226,36 @@ def main():
         )
 
     st.subheader("🗺️ Mapa Interativo")
+    # Simple Folium map without advanced plugins to avoid cloud rendering issues
     m = folium.Map(location=[st.session_state.lat, st.session_state.lon], zoom_start=10)
     folium.Marker(
         [st.session_state.lat, st.session_state.lon],
         popup=f"Local Selecionado<br>Latitude: {st.session_state.lat:.4f}<br>Longitude: {st.session_state.lon:.4f}",
         tooltip=f"Lat: {st.session_state.lat:.4f}, Lon: {st.session_state.lon:.4f}"
     ).add_to(m)
-    map_data = st_folium(m, width=700, height=300, key="map")
     
+    # Render map with safer key and minimal returned objects
+    map_data = st_folium(m, width=700, height=300, key="map_key", returned_objects=["last_clicked"])
     
-    if map_data and map_data.get("last_clicked"):
+    # Handle map clicks with robust error checking
+    if map_data is not None and "last_clicked" in map_data and map_data["last_clicked"] is not None:
         try:
-            st.session_state.lat = float(map_data["last_clicked"]["lat"])
-            st.session_state.lon = float(map_data["last_clicked"]["lng"])
-        except (TypeError, ValueError):
-            st.error("Erro: Coordenadas do mapa inválidas. Usando valores padrão.")
-            st.session_state.lat = -23.5505
-            st.session_state.lon = -46.6333
-        st.rerun()  
+            new_lat = float(map_data["last_clicked"]["lat"])
+            new_lon = float(map_data["last_clicked"]["lng"])
+            if -90.0 <= new_lat <= 90.0 and -180.0 <= new_lon <= 180.0:
+                st.session_state.lat = new_lat
+                st.session_state.lon = new_lon
+                if st.secrets.get("DEBUG", False):
+                    st.success(f"Map click updated: Lat={new_lat:.4f}, Lon={new_lon:.4f}")
+                st.rerun()
+            else:
+                st.warning("Coordenadas do clique fora do intervalo válido.")
+        except (TypeError, ValueError, KeyError) as e:
+            if st.secrets.get("DEBUG", False):
+                st.error(f"Erro no clique do mapa: {e}. Mantendo valores atuais.")
+    else:
+        if st.secrets.get("DEBUG", False):
+            st.write("Debug: Nenhum clique no mapa detectado ou map_data inválido.")
 
     st.subheader("🌦️ Estação do Ano")
     season = st.selectbox("Selecione a estação", ["Chuvosa", "Seca"], help="Afeta a simulação de precipitação")
