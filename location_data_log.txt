@@ -12,3 +12,9 @@ location_data: {'temperature': 12.087974377967793, 'humidity': 77.02407611615588
 location_df dtypes: {'N': dtype('float64'), 'P': dtype('float64'), 'K': dtype('float64'), 'temperature': dtype('float64'), 'humidity': dtype('float64'), 'ph': dtype('float64'), 'rainfall': dtype('float64')}
 location_data: {'N': 109.0, 'P': 113.0, 'K': 116.0, 'temperature': 21.5, 'humidity': 94.0, 'ph': 7.6, 'rainfall': 150.0}
 location_df dtypes: {'N': dtype('float64'), 'P': dtype('float64'), 'K': dtype('float64'), 'temperature': dtype('float64'), 'humidity': dtype('float64'), 'ph': dtype('float64'), 'rainfall': dtype('float64')}
+location_data: {'temperature': 26.534184199621986, 'humidity': 84.97778169288158, 'rainfall': 858.8936447744617, 'ph': 4.835972297273781, 'N': 118.22076807510805, 'P': 74.51263333413293, 'K': 59.192597256253464}
+location_df dtypes: {'N': dtype('float64'), 'P': dtype('float64'), 'K': dtype('float64'), 'temperature': dtype('float64'), 'humidity': dtype('float64'), 'ph': dtype('float64'), 'rainfall': dtype('float64')}
+location_data: {'N': 25.0, 'P': 17.0, 'K': 13.0, 'temperature': 39.1, 'humidity': 36.0, 'ph': 8.1, 'rainfall': 66.0}
+location_df dtypes: {'N': dtype('float64'), 'P': dtype('float64'), 'K': dtype('float64'), 'temperature': dtype('float64'), 'humidity': dtype('float64'), 'ph': dtype('float64'), 'rainfall': dtype('float64')}
+location_data: {'N': 25.0, 'P': 17.0, 'K': 13.0, 'temperature': 39.1, 'humidity': 36.0, 'ph': 8.1, 'rainfall': 219.0}
+location_df dtypes: {'N': dtype('float64'), 'P': dtype('float64'), 'K': dtype('float64'), 'temperature': dtype('float64'), 'humidity': dtype('float64'), 'ph': dtype('float64'), 'rainfall': dtype('float64')}
